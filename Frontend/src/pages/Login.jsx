@@ -13,7 +13,7 @@ const Login = () => {
         e.preventDefault();
         try {
             await login(email, password);
-            navigate("/");
+            navigate("/login");
         } catch (err) {
             setError(err.message);
         }
@@ -23,7 +23,6 @@ const Login = () => {
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
             <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold text-center mb-4">Login</h2>
-                {error && <p className="text-red-500 text-center">{error}</p>}
                 <form onSubmit={handleLogin} className="space-y-4">
                     <input
                         type="email"
@@ -48,6 +47,13 @@ const Login = () => {
                         Login
                     </button>
                 </form>
+                {error && <p className="text-red-500">{error}</p>}
+                <p className="mt-4 text-center text-sm">
+                    Don;t have an account?
+                    <a href="/register" className="text-blue-600 hover:underline">
+                        Register here
+                    </a>
+                </p>
             </div>
         </div>
     );

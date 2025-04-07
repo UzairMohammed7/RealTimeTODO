@@ -16,7 +16,13 @@ const io = socketIo(server, {
     method: ["GET", "POST"]
 });
 
-app.use(cors());
+app.use(cors(
+    {
+        origin: "http://localhost:5173",
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+));
 app.use(express.json());
 app.use('/users', UserRoutes)
 
@@ -44,5 +50,5 @@ app.get("/", (req, res) => {
     res.send("API is running...");
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
