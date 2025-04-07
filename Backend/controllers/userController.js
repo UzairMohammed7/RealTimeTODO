@@ -14,8 +14,9 @@ exports.registerUser = async (req, res) => {
 
         user = new User({ name, email, password: hashedPassword });
         await user.save();
-
-        res.status(201).json({ message: "User registered" });
+        
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        res.status(201).json({token, message: "User registered" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -39,7 +40,22 @@ exports.loginUser = async (req, res) => {
     }
 };
 
+exports.checkAuth = async (req, res) => {
+    try {
+      const user = await User.findById(req.userId).select("-password")
+      if (!user) {
+        return res.status(401).json({ success: false, message: "User Not Found" });
+      }
+      return res.status(200).json({ success: true, user });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 exports.logoutUser = async (req, res) => {
     res.clearCookie("token");
     res.status(200).json({ success: true, message: "Logged Out Successfully" });
-  };
+};
+
+

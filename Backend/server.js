@@ -1,18 +1,21 @@
-const express = require("express");
 const dotenv = require("dotenv");
+dotenv.config();
+
+const express = require("express");
 const cors = require("cors");
+const cookieParser = require('cookie-parser')
 const http = require("http");
 const socketIo = require("socket.io");
 const connectDB = require("./config/db");
 const UserRoutes = require("./routes/userRoutes")
 
-dotenv.config();
 connectDB();
 
 const app = express();
 const server = http.createServer(app);
+
 const io = socketIo(server, {
-    cors: { origin: "*" },
+    cors: { origin: "http://localhost:5173" },
     method: ["GET", "POST"]
 });
 
@@ -24,7 +27,9 @@ app.use(cors(
     }
 ));
 app.use(express.json());
-app.use('/users', UserRoutes)
+app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
+app.use('/api/users', UserRoutes)
 
 io.on("connection", (socket) => {
     console.log("New client connected");

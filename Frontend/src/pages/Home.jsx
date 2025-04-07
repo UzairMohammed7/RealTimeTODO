@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuthStore from "../store/authStore";
+import { useAuthStore } from "../store/authStore";
 import io from "socket.io-client";
 import axios from "axios";
 
@@ -10,8 +10,7 @@ const Home = () => {
     const [tasks, setTasks] = useState([]);
     const [task, setTask] = useState("");
     const [comments, setComments] = useState({});
-    const user = useAuthStore((state) => state.user);
-    const logout = useAuthStore((state) => state.logout);
+    const {user, logout} = useAuthStore();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -58,7 +57,7 @@ const Home = () => {
     };
 
     return (
-        <div className="min-h-screen p-6 bg-gray-100">
+        <div className="min-h-screen p-6 bg-gradient-to-r from-blue-500 to-green-400">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-3xl font-bold">Dashboard</h2>
                 <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded-lg">
