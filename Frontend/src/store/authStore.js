@@ -15,30 +15,27 @@ export const useAuthStore = create((set) => ({
     register: async (name, email, password) => {
         try{
             const res = await axios.post(`http://localhost:5000/api/users/register`, { name, email, password });
-            set({ user: res.data.user, isAuthenticated: true });
+            set({ user: res.data.user, isAuthenticated: true, error: null });
         } catch(error){
             set({ error: error.response.data.message });
-            throw error;
         }
     },
 
     login: async (email, password) => {
         try{
             const res = await axios.post(`http://localhost:5000/api/users/login`, { email, password });
-            set({ user: res.data.user, isAuthenticated: true});
+            set({ user: res.data.user, isAuthenticated: true, error: null});
         }catch(error){
             set({ error: error.response.data.message });
-            throw error;
         }
     },
 
     logout: async () => {
         try {
-            await axios.post(`http://localhost:5000/api/users/logout`);
+            await axios.get(`http://localhost:5000/api/users/logout`);
             set({ user: null, isAuthenticated: false, error: null });
           } catch (error) {
-            set({ error: "Error logging out"});
-            throw error;
+            set({ error: error});
           }
     },
 

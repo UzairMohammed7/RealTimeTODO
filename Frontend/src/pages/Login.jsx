@@ -39,7 +39,7 @@ const Login = () => {
                         className="w-full px-3 py-2 border rounded-lg"
                         required
                     />
-                    {error && <p className="text-red-500 text-center font-semibold">{error}</p>}
+                    {error && <p className="text-red-500 text-center font-semibold">{error.message}</p>}
                     <button
                         type="submit"
                         className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"

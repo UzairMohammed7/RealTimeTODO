@@ -50,7 +50,7 @@ const Home = () => {
         setComments((prev) => ({ ...prev, [taskId]: "" }));
         socket.emit("commentUpdated");
     };
-
+      
     const handleLogout = () => {
         logout();
         navigate("/login");
@@ -60,7 +60,7 @@ const Home = () => {
         <div className="min-h-screen p-6 bg-gradient-to-r from-blue-500 to-green-400">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-3xl font-bold">Dashboard</h2>
-                <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded-lg">
+                <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded-lg cursor-pointer">
                     Logout
                 </button>
             </div>
@@ -72,7 +72,7 @@ const Home = () => {
                     onChange={(e) => setTask(e.target.value)}
                     className="px-3 py-2 border rounded-lg"
                 />
-                <button onClick={addTask} className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg">
+                <button onClick={addTask} className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer">
                     Add
                 </button>
             </div>

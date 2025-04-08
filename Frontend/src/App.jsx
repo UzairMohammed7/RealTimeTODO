@@ -3,12 +3,12 @@ import { useAuthStore } from "./store/authStore";
 import { useEffect } from "react";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Homee from "./pages/Homee";
+import Home from "./pages/Home";
 
 const ProtectedRoute = ({ children }) => {
-	const { isAuthenticated, user } = useAuthStore();
+	const { isAuthenticated } = useAuthStore();
 
-    console.log("ProtectedRoute Auth Check: ", isAuthenticated, user);
+    // console.log("ProtectedRoute Auth Check: ", isAuthenticated, user);
 
 	if (!isAuthenticated) {
 		return <Navigate to='/login' replace />;
@@ -27,7 +27,7 @@ function App() {
 
     return (
         <Routes>
-            <Route exact path="/" element={<ProtectedRoute> <Homee /> </ProtectedRoute> } />
+            <Route path="/" element={<ProtectedRoute> <Home /> </ProtectedRoute> } />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path='*' element={<Navigate to='/' replace />} />

@@ -15,7 +15,13 @@ exports.registerUser = async (req, res) => {
         user = new User({ name, email, password: hashedPassword });
         await user.save();
         
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+          });
         res.status(201).json({token, message: "User registered" });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -27,13 +33,18 @@ exports.loginUser = async (req, res) => {
 
     try {
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: "Invalid credentials" });
+        if (!user) return res.status(400).json({ message: "Invalid Email" });
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+        if (!isMatch) return res.status(400).json({ message: "Invalid Password" });
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+          });
         res.json({ token, userId: user._id, message: "Loggedin Successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -42,7 +53,7 @@ exports.loginUser = async (req, res) => {
 
 exports.checkAuth = async (req, res) => {
     try {
-      const user = await User.findById(req.userId).select("-password")
+      let user = await User.findById(req.userId).select("-password")
       if (!user) {
         return res.status(401).json({ success: false, message: "User Not Found" });
       }
@@ -57,5 +68,3 @@ exports.logoutUser = async (req, res) => {
     res.clearCookie("token");
     res.status(200).json({ success: true, message: "Logged Out Successfully" });
 };
-
-
