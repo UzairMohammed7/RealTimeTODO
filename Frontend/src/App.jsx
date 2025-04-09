@@ -8,8 +8,6 @@ import Home from "./pages/Home";
 const ProtectedRoute = ({ children }) => {
 	const { isAuthenticated } = useAuthStore();
 
-    // console.log("ProtectedRoute Auth Check: ", isAuthenticated, user);
-
 	if (!isAuthenticated) {
 		return <Navigate to='/login' replace />;
 	}
@@ -20,7 +18,7 @@ function App() {
     const {checkAuth, isCheckingAuth} = useAuthStore()
     useEffect(() => {
        checkAuth();
-    }, [checkAuth]);
+    }, []);
 
     // Wait for the authentication check to complete before rendering
     if (isCheckingAuth) return <div>Loading...</div>;
