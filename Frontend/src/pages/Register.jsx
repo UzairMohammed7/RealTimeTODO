@@ -14,8 +14,8 @@ const Register = () => {
       try {
         await register(name, email, password);
         navigate("/");
-      } catch (e) {
-        console.log(e);
+      } catch (error) {
+        console.log("Registration Failed", error);
       }
     };
 
@@ -51,7 +51,7 @@ const Register = () => {
                         className="w-full px-3 py-2 border rounded-lg"
                         required
                     />
-                    {error && <p className="text-red-500 text-center font-semibold">{error.message}</p>}
+                    {error && <p className="text-red-500 text-center font-semibold">{error?.message}</p>}
                     <button
                         type="submit"
                         className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"

@@ -5,13 +5,17 @@ import { Link, useNavigate } from "react-router-dom";
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { login, error} = useAuthStore();
+    const {login, error} = useAuthStore();
     const navigate = useNavigate()
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        await login(email, password);
-        navigate('/')
+        try {
+            await login(email, password);
+            navigate("/");
+        } catch (error) {
+            console.log("Login failed", error);
+        }
     };
 
     return (

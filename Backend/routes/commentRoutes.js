@@ -1,6 +1,7 @@
 const express = require("express");
 const Comment = require("../models/Comment");
 const router = express.Router();
+const { verifyToken } = require("../middleware/verifyToken");
 
 // GET all comments
 router.get("/", async (req, res) => {
@@ -13,18 +14,36 @@ router.get("/", async (req, res) => {
 });
 
 // Get comments by task
-router.get("/:taskId", async (req, res) => {
-  const comments = await Comment.find({ taskId: req.params.taskId }).sort({ createdAt: 1 });
-  res.json(comments);
+router.get("/:taskId", verifyToken, async (req, res) => {
+  try {
+    const comments = await Comment.find({ taskId: req.params.taskId })
+      .populate("userId", "name");
+    res.json(comments);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // Add comment
-router.post("/", async (req, res) => {
-  const { taskId, text, userId } = req.body;
-  const comment = new Comment({ taskId, text, userId });
-  await comment.save();
-  res.status(201).json(comment);
+router.post("/", verifyToken, async (req, res) => {
+  try {
+    const { text, taskId } = req.body;
+
+    const newComment = new Comment({
+      text,
+      taskId,
+      userId: req.userId
+    });
+
+    const savedComment = await newComment.save();
+    const populatedComment = await savedComment.populate("userId", "name");
+
+    res.status(201).json(populatedComment);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
+
 
 // DELETE comment
 router.delete("/:id", async (req, res) => {

@@ -23,8 +23,8 @@ exports.registerUser = async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000, // 1 day
           });
         res.status(201).json({token, message: "User registered" });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+      } catch (error) {
+        res.status(500).json({ message: error.message || "Internal Server Error" });
     }
 };
 
