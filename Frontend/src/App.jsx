@@ -28,7 +28,7 @@ function App() {
     return (
         <Routes>
             <Route path="/" element={<ProtectedRoute> <Home /> </ProtectedRoute> } />
-            <Route path="/register" element={<RedirectRoute>  <Register /></RedirectRoute> } />
+            <Route path="/register" element={<RedirectRoute>  <Register /> </RedirectRoute> } />
             <Route path="/login" element={<RedirectRoute> <Login /> </RedirectRoute>} />
             <Route path='*' element={<Navigate to='/' replace />} />
         </Routes>

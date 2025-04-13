@@ -18,7 +18,8 @@ const server = http.createServer(app);
 
 const io = socketIo(server, {
     cors: { origin: "http://localhost:5173" || "*" },
-    method: ["GET", "POST", 'PUT', "DELETE"]
+    methods: ["GET", "POST", 'PUT', "DELETE"],
+    credentials: true,
 });
 
 app.use(cors(
@@ -35,29 +36,39 @@ app.use('/api/users', UserRoutes)
 app.use("/api/tasks", TaskRoutes);
 app.use("/api/comments", CommentRoutes);
 
+let onlineUsers = new Map();
+
 io.on("connection", (socket) => {
-    console.log("New client connected");
+    console.log("A user connected:", socket.id);
 
-    socket.on("taskUpdated", () => {
-        io.emit("taskUpdated");
-      });
-    
-    socket.on("commentUpdated", () => {
-      io.emit("commentUpdated");
+    socket.on("userConnected", (userId) => {
+      onlineUsers.set(userId, socket.id);
+      io.emit("updateOnlineUsers", Array.from(onlineUsers.keys()));
     });
 
-    socket.on("taskCreated", () => {
-        io.emit("taskCreated");
-    });
+    // socket.on("userConnected", ({ userId, name }) => {
+    //     onlineUsers.set(userId, { socketId: socket.id, name });
+    //     io.emit("updateOnlineUsers", Array.from(onlineUsers.entries()));
+    // });
     
     socket.on("disconnect", () => {
-        console.log("Client disconnected");
+      for (let [userId, sockId] of onlineUsers.entries()) {
+        if (sockId === socket.id) {
+          onlineUsers.delete(userId);
+          break;
+        }
+      }
+      io.emit("updateOnlineUsers", Array.from(onlineUsers.keys()));
+      console.log("User disconnected:", socket.id);
     });
+
+    socket.on("taskUpdated", () => {io.emit("taskUpdated");});   
+    socket.on("commentUpdated", () => {io.emit("commentUpdated");});
+    socket.on("taskCreated", () => {io.emit("taskCreated");});
+    
 });
 
-app.get("/", (req, res) => {
-    res.send("API is running...");
-});
+app.get("/", (req, res) => {res.send("API is running...")});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
