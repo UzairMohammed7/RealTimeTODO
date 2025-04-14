@@ -54,7 +54,7 @@ const Register = () => {
                     {error && <p className="text-red-500 text-center font-semibold">{error?.message}</p>}
                     <button
                         type="submit"
-                        className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"
+                        className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 cursor-pointer"
                     >
                         Register
                     </button>

@@ -1,39 +1,50 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
 import { useEffect } from "react";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
+import { Loader } from "lucide-react";
 
 const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated } = useAuthStore();
-    if (!isAuthenticated) return <Navigate to="/login" replace />;
-    return children;
-  };
+  const { isAuthenticated } = useAuthStore();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return children;
+};
 
-  const RedirectRoute = ({children}) => {
-    const { isAuthenticated } = useAuthStore();
-    if (isAuthenticated) return <Navigate to="/" replace />;
-    return children;
-  }
+const RedirectRoute = ({ children }) => {
+  const { isAuthenticated } = useAuthStore();
+  if (isAuthenticated) return <Navigate to="/" replace />;
+  return children;
+};
 
 function App() {
-    const {checkAuth, isCheckingAuth} = useAuthStore()
-    useEffect(() => {
-       checkAuth();
-    }, []);
+  const { checkAuth, isCheckingAuth } = useAuthStore();
+  const location = useLocation();
 
-    if (isCheckingAuth) return <div>Loading...</div>;
+  useEffect(() => {
+    checkAuth();
 
-    return (
-        <Routes>
-            <Route path="/" element={<ProtectedRoute> <Home /> </ProtectedRoute> } />
-            <Route path="/register" element={<RedirectRoute>  <Register /> </RedirectRoute> } />
-            <Route path="/login" element={<RedirectRoute> <Login /> </RedirectRoute>} />
-            <Route path='*' element={<Navigate to='/' replace />} />
-        </Routes>
-        
-    );
+    // Handle invitation token from URL
+    if (location.pathname.startsWith("/invite/")) {
+      const token = location.pathname.split("/")[2];
+      localStorage.setItem("inviteToken", token);
+    }
+  }, [location]);
+
+  if (isCheckingAuth) return;
+  <div className="h-screen flex justify-center items-center">
+    <Loader className="w-full h-14 text-blue-500 animate-spin" />
+  </div>;
+
+  return (
+    <Routes>
+      <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute> }/>
+      <Route path="/register" element={<RedirectRoute><Register /> </RedirectRoute> }/>
+      <Route path="/login" element={<RedirectRoute><Login /> </RedirectRoute> }/>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 export default App;
