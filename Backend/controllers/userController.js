@@ -68,3 +68,30 @@ exports.logoutUser = async (req, res) => {
     res.clearCookie("token");
     res.status(200).json({ success: true, message: "Logged Out Successfully" });
 };
+
+// Generate invite link
+exports.generateInviteLink = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const inviteToken = jwt.sign({ invitedBy: userId }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    const inviteLink = `${process.env.FRONTEND_URL}/invite/${inviteToken}`;
+    res.json({ inviteLink });
+  } catch (err) {
+    console.error("Error generating invite link:", err);
+    res.status(500).json({ error: "Failed to generate invite link" });
+  }
+};
+
+// Validate invite token
+exports.validateInvite = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({ valid: true, invitedBy: decoded.invitedBy });
+  } catch (err) {
+    res.status(400).json({ valid: false, error: "Invalid or expired token" });
+  }
+};
