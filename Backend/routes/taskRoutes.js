@@ -26,53 +26,53 @@ router.post("/", verifyToken, async (req, res) => {
   }
 });
 
-// Add task to private
-router.post("/private", verifyToken, async (req, res) => {
-  try {
-    const { title } = req.body;
-    const newTask = new Task({ title, createdBy: req.userId, isPrivate: true });
+// // Add task to private
+// router.post("/private", verifyToken, async (req, res) => {
+//   try {
+//     const { title } = req.body;
+//     const newTask = new Task({ title, createdBy: req.userId, isPrivate: true });
 
-    const savedTask = await newTask.save();
-    const populatedTask = await savedTask.populate("createdBy", "name");
+//     const savedTask = await newTask.save();
+//     const populatedTask = await savedTask.populate("createdBy", "name");
 
-    res.status(201).json(populatedTask);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+//     res.status(201).json(populatedTask);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
 
-// Get private tasks
-router.get('/private', verifyToken, async (req, res) => {
-  try {
-    const tasks = await Task.find({ isPrivate: true, createdBy: req.userId })
-      .populate("createdBy", "name")
-      .populate("completedBy", "name");
-    res.json(tasks);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+// // Get private tasks
+// router.get('/private', verifyToken, async (req, res) => {
+//   try {
+//     const tasks = await Task.find({ isPrivate: true, createdBy: req.userId })
+//       .populate("createdBy", "name")
+//       .populate("completedBy", "name");
+//     res.json(tasks);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
 
-// Toggle Private task completion
-router.put("/private/:id", verifyToken, async (req, res) => {
-  try {
-    const task = await Task.findById(req.params.id);
-    if (!task) return res.status(404).json({ message: "Task not found" });
+// // Toggle Private task completion
+// router.put("/private/:id", verifyToken, async (req, res) => {
+//   try {
+//     const task = await Task.findById(req.params.id);
+//     if (!task) return res.status(404).json({ message: "Task not found" });
     
-    task.completed = !task.completed;
-    task.completedBy = task.completed ? req.userId : null;
+//     task.completed = !task.completed;
+//     task.completedBy = task.completed ? req.userId : null;
 
-    await task.save();
+//     await task.save();
 
-    const populatedTask = await Task.findById(task._id)
-      .populate("createdBy", "name")
-      .populate("completedBy", "name");
+//     const populatedTask = await Task.findById(task._id)
+//       .populate("createdBy", "name")
+//       .populate("completedBy", "name");
 
-    res.json(populatedTask);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+//     res.json(populatedTask);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
 
 // Toggle task completion
 router.put("/:id", verifyToken, async (req, res) => {
