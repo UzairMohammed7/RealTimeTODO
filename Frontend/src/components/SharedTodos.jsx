@@ -1,11 +1,8 @@
 import React from "react";
 
 const SharedTodos = ({
-  task,
-  setTask,
-  addTask,
-  tasks,
   user,
+  sharedTasks,
   completeTask,
   handleDeleteTask,
   comments,
@@ -15,28 +12,9 @@ const SharedTodos = ({
   handleDeleteComment,
 }) => {
   return (
-    <>
-      {/* Add Task */}
-      <div className="flex gap-2 mb-6">
-        <input
-          type="text"
-          placeholder="Add New task"
-          value={task}
-          onChange={(e) => setTask(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addTask()}
-          className="flex-1 border rounded px-4 py-2 focus:outline-none focus:ring focus:ring-cyan-400"
-        />
-        <button
-          onClick={addTask}
-          className="bg-cyan-400 hover:bg-cyan-600 text-white px-4 py-2 rounded cursor-pointer"
-        >
-          Add
-        </button>
-      </div>
-
-      {/* Shared Tasks */}
+    <div className="mt-4">
       <ul className="space-y-4">
-        {tasks.length === 0 ? (
+        {sharedTasks.length === 0 ? (
           <div className="bg-white p-8 mt-2 rounded-lg shadow text-center flex flex-col items-center justify-center">
             <img
               src="https://cdn-icons-png.flaticon.com/512/4076/4076478.png"
@@ -44,11 +22,11 @@ const SharedTodos = ({
               className="w-24 h-24 opacity-50 mb-4"
             />
             <h3 className="text-xl font-medium text-gray-500">
-              No Tasks Are Added
+              No tasks Are Added
             </h3>
           </div>
         ) : (
-          [...tasks].reverse().map((task) => (
+          [...sharedTasks].reverse().map((task) => (
             <li
               key={task._id}
               className="bg-white p-4 rounded-lg shadow border-l-4 border-cyan-400"
@@ -138,7 +116,7 @@ const SharedTodos = ({
           ))
         )}
       </ul>
-    </>
+    </div>
   );
 };
 

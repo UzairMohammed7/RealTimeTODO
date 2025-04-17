@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
 import { Loader } from "lucide-react";
+import AcceptInvite from "./pages/AcceptInvite";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
@@ -42,6 +43,7 @@ function App() {
       <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute> }/>
       <Route path="/register" element={<RedirectRoute><Register /> </RedirectRoute> }/>
       <Route path="/login" element={<RedirectRoute><Login /> </RedirectRoute> }/>
+      <Route path="/accept-invite/:token" element={<AcceptInvite />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -1,7 +1,7 @@
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import io from "socket.io-client";
 import axios from "axios";
@@ -9,29 +9,27 @@ import PrivateTodos from "../components/PrivateTodos";
 import SharedTodos from "../components/SharedTodos";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+
 const API_URL = import.meta.env.VITE_BASE_URL;
 
 const socket = io(`${API_URL}`);
 
 const Home = () => {
-  const [tasks, setTasks] = useState([]);
-  const [task, setTask] = useState("");
+  const [privateTasks, setPrivateTasks] = useState([]);
+  const [sharedTasks, setSharedTasks] = useState([]);
+  const [privateTitle, setPrivateTitle] = useState("");
   const [comments, setComments] = useState({});
   const [allComments, setAllComments] = useState({});
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
-  const [activeTab, setActiveTab] = useState("shared");
+  const [activeTab, setActiveTab] = useState("private");
   const { user, logout, isAuthenticated } = useAuthStore();
-  const navigate = useNavigate();
-  const { token } = useParams();
 
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem("inviteToken", token);
-    }
-  }, [token]);
+
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -40,12 +38,15 @@ const Home = () => {
 
       const fetchAllData = async () => {
         try {
-          const res = await axios.get(`${API_URL}/api/tasks`);
-          setTasks(res.data);
+          const privateTasksRes = await axios.get(`${API_URL}/api/tasks/private`);
+          setPrivateTasks(privateTasksRes.data);
+          
+          const sharedTasksRes = await axios.get(`${API_URL}/api/tasks/shared`);
+          setSharedTasks(sharedTasksRes.data);
 
           const commentMap = {};
           await Promise.all(
-            res.data.map(async (task) => {
+            sharedTasksRes.data.map(async (task) => {
               const resComments = await axios.get(
                 `${API_URL}/api/comments/${task._id}`
               );
@@ -77,7 +78,7 @@ const Home = () => {
     }
   }, [user, isAuthenticated]);
 
-  const generateInviteLink = async () => {
+  const generateAppInviteLink = async () => {
     setIsGeneratingLink(true);
     try {
       const res = await axios.get(`${API_URL}/api/users/invite-link`, {
@@ -86,7 +87,6 @@ const Home = () => {
         },
       });
       setInviteLink(res.data.inviteLink);
-      toast.success("Invite link generated!");
       return res.data.inviteLink;
     } catch (err) {
       console.error("Error generating invite link:", err);
@@ -97,14 +97,26 @@ const Home = () => {
     }
   };
 
+  const generateTaskInviteLink = async (taskId) => {
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/tasks/generate-link/${taskId}`
+      );
+      await navigator.clipboard.writeText(res.data.inviteLink);
+      toast.success("Task Invite link copied!");
+    } catch {
+      toast.error("Failed to generate link");
+    }
+  };
+
   const copyInviteLink = async () => {
     let link = inviteLink;
     if (!link) {
-      link = await generateInviteLink();
+      link = await generateAppInviteLink();
     }
     if (link) {
       navigator.clipboard.writeText(link);
-      toast.success("Invite link copied to clipboard!");
+      toast.success("App Invite link copied to clipboard!");
     }
   };
 
@@ -120,11 +132,12 @@ const Home = () => {
     toast.info("Comment deleted");
   };
 
-  const addTask = async () => {
-    if (!task) return;
-    await axios.post(`${API_URL}/api/tasks`, { title: task });
-    setTask("");
+  const addPrivateTask = async () => {
+    if (!privateTitle) return;
+    await axios.post(`${API_URL}/api/tasks/private`, { title: privateTitle });
+    setPrivateTitle("");
     socket.emit("taskUpdated");
+    console.log(privateTasks)
   };
 
   const completeTask = async (id) => {
@@ -132,7 +145,7 @@ const Home = () => {
       const res = await axios.put(`${API_URL}/api/tasks/${id}`);
       const updatedTask = res.data;
 
-      setTasks((prevTasks) =>
+      setPrivateTasks((prevTasks) =>
         prevTasks.map((task) => (task._id === id ? updatedTask : task))
       );
 
@@ -190,16 +203,6 @@ const Home = () => {
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200 mb-6">
           <button
-            onClick={() => setActiveTab("shared")}
-            className={`px-4 py-2 font-medium text-sm focus:outline-none ${
-              activeTab === "shared"
-                ? "border-b-2 border-cyan-400 text-cyan-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Shared Tasks
-          </button>
-          <button
             onClick={() => setActiveTab("private")}
             className={`px-4 py-2 font-medium text-sm focus:outline-none ${
               activeTab === "private"
@@ -209,14 +212,21 @@ const Home = () => {
           >
             Private Tasks
           </button>
+          <button
+            onClick={() => setActiveTab("shared")}
+            className={`px-4 py-2 font-medium text-sm focus:outline-none ${
+              activeTab === "shared"
+                ? "border-b-2 border-cyan-400 text-cyan-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Shared Tasks
+          </button>
         </div>
 
         {activeTab === "shared" ? (
           <SharedTodos
-            task={task}
-            setTask={setTask}
-            addTask={addTask}
-            tasks={tasks}
+            sharedTasks={sharedTasks}
             user={user}
             completeTask={completeTask}
             handleDeleteTask={handleDeleteTask}
@@ -227,7 +237,15 @@ const Home = () => {
             handleDeleteComment={handleDeleteComment}
           />
         ) : (
-          <PrivateTodos />
+          <PrivateTodos 
+            user={user}
+            privateTitle={privateTitle}
+            setPrivateTitle={setPrivateTitle}
+            privateTasks={privateTasks}
+            addPrivateTask={addPrivateTask}
+            generateTaskInviteLink={generateTaskInviteLink}
+            handleDeleteTask={handleDeleteTask}
+          />
         )}
       </main>
     </div>
