@@ -8,7 +8,6 @@ import axios from "axios";
 import PrivateTodos from "../components/PrivateTodos";
 import SharedTodos from "../components/SharedTodos";
 import Sidebar from "./Sidebar";
-import Header from "./Header";
 
 const API_URL = import.meta.env.VITE_BASE_URL;
 
@@ -24,10 +23,8 @@ const Home = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
-  const [activeTab, setActiveTab] = useState("private");
+  const [activeTab, setActiveTab] = useState("shared");
   const { user, logout, isAuthenticated } = useAuthStore();
-
-
 
   const navigate = useNavigate();
 
@@ -38,9 +35,11 @@ const Home = () => {
 
       const fetchAllData = async () => {
         try {
-          const privateTasksRes = await axios.get(`${API_URL}/api/tasks/private`);
+          const privateTasksRes = await axios.get(
+            `${API_URL}/api/tasks/private`
+          );
           setPrivateTasks(privateTasksRes.data);
-          
+
           const sharedTasksRes = await axios.get(`${API_URL}/api/tasks/shared`);
           setSharedTasks(sharedTasksRes.data);
 
@@ -65,18 +64,50 @@ const Home = () => {
       socket.on("taskUpdated", fetchAllData);
       socket.on("commentUpdated", fetchAllData);
 
-      socket.on("updateOnlineUsers", (usersArray) => {
-        setOnlineUsers(usersArray);
-      });
+      // socket.on("updateOnlineUsers", (usersArray) => {
+      //   setOnlineUsers(usersArray);
+      // });
 
       return () => {
         socket.off("taskUpdated", fetchAllData);
         socket.off("commentUpdated", fetchAllData);
-        socket.off("updateOnlineUsers");
+        // socket.off("updateOnlineUsers");
         socket.disconnect();
       };
     }
   }, [user, isAuthenticated]);
+
+  useEffect(() => {
+    socket.on("updateOnlineUsers", (usersArray) => {
+      const sharedWithUserIds = new Set();
+      const newUserJoined = usersArray.find(
+        (u) => sharedWithUserIds.has(u.userId) && !onlineUsers.find(o => o.userId === u.userId)
+      );
+    
+      if (newUserJoined) {
+        toast.success(`${newUserJoined.name} joined your shared task!`);
+      }
+    
+      const filteredUsers = usersArray.filter(
+        (u) => sharedWithUserIds.has(u.userId) || u.userId === user._id
+      );
+      setOnlineUsers(filteredUsers);
+    });
+
+    return () => {
+      socket.off("updateOnlineUsers");
+    };
+  }, [sharedTasks, user]);
+
+  // useEffect(() => {
+  //   socket.on("updateOnlineUsers", (usersArray) => {
+  //     setOnlineUsers(usersArray);
+  //   });
+  //   return () => {
+  //     socket.off("updateOnlineUsers");
+  //     socket.disconnect();
+  //   };
+  // }, [user]);
 
   const generateAppInviteLink = async () => {
     setIsGeneratingLink(true);
@@ -137,7 +168,7 @@ const Home = () => {
     await axios.post(`${API_URL}/api/tasks/private`, { title: privateTitle });
     setPrivateTitle("");
     socket.emit("taskUpdated");
-    console.log(privateTasks)
+    console.log(privateTasks);
   };
 
   const completeTask = async (id) => {
@@ -185,6 +216,7 @@ const Home = () => {
         inviteLink={inviteLink}
         isGeneratingLink={isGeneratingLink}
         copyInviteLink={copyInviteLink}
+        handleLogout={handleLogout}
       />
 
       {/* Mobile menu button */}
@@ -197,14 +229,11 @@ const Home = () => {
 
       {/* Main Content */}
       <main className="flex-1 p-4 md:p-6 mt-16 md:mt-0">
-        {/* Header */}
-        <Header user={user} handleLogout={handleLogout} />
-
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200 mb-6">
           <button
             onClick={() => setActiveTab("private")}
-            className={`px-4 py-2 font-medium text-sm focus:outline-none ${
+            className={`px-4 py-2 font-medium text-xl focus:outline-none ${
               activeTab === "private"
                 ? "border-b-2 border-cyan-400 text-cyan-600"
                 : "text-gray-500 hover:text-gray-700"
@@ -214,7 +243,7 @@ const Home = () => {
           </button>
           <button
             onClick={() => setActiveTab("shared")}
-            className={`px-4 py-2 font-medium text-sm focus:outline-none ${
+            className={`px-4 py-2 font-medium text-xl focus:outline-none ${
               activeTab === "shared"
                 ? "border-b-2 border-cyan-400 text-cyan-600"
                 : "text-gray-500 hover:text-gray-700"
@@ -237,8 +266,9 @@ const Home = () => {
             handleDeleteComment={handleDeleteComment}
           />
         ) : (
-          <PrivateTodos 
+          <PrivateTodos
             user={user}
+            completeTask={completeTask}
             privateTitle={privateTitle}
             setPrivateTitle={setPrivateTitle}
             privateTasks={privateTasks}

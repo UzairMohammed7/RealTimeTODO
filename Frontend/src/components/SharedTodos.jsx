@@ -29,7 +29,7 @@ const SharedTodos = ({
           [...sharedTasks].reverse().map((task) => (
             <li
               key={task._id}
-              className="bg-white p-4 rounded-lg shadow border-l-4 border-cyan-400"
+              className="bg-white p-4 rounded-lg shadow border-l-4 border-cyan-400 hover:shadow-lg transition duration-300"
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -45,10 +45,29 @@ const SharedTodos = ({
                   <p className="text-sm text-gray-500 mt-1">
                     📝 Created by: <strong>{task.createdBy?.name}</strong>
                   </p>
+                  {/* Created At */}
+                  <p className="text-sm text-gray-500 mt-1">
+                    📅 Created At:{" "}
+                    <strong>{new Date(task.createdAt).toLocaleString()}</strong>
+                  </p>
+
+                  {/* Shared With */}
+                  <p className="text-sm text-gray-500 mt-1">
+                    👥 Shared With:{" "}
+                    <span className="font-semibold">
+                      {[
+                        ...new Set(task.sharedWith.map((user) => user.name)),
+                      ].map((name, index, arr) => (
+                        <span key={index}>
+                          {name}
+                          {index !== arr.length - 1 && ", "}
+                        </span>
+                      ))}
+                    </span>
+                  </p>
                   {task.completed && (
                     <p className="text-sm text-green-600">
-                      ✅ Completed by:{" "}
-                      <strong>{task.completedBy?.name}</strong>
+                      ✅ Completed by: <strong>{task.completedBy?.name}</strong>
                     </p>
                   )}
                 </div>

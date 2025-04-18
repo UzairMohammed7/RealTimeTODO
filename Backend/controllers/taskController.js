@@ -93,7 +93,7 @@ const getSharedTasks = async (req, res) => {
         { sharedWith: req.userId },  // User is invited
         { createdBy: req.userId }    // User is the sharer
       ]
-    }).populate("createdBy", "name").populate("completedBy", "name");
+    }).populate("createdBy", "name").populate("completedBy", "name").populate("sharedWith", "name");
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ message: "Failed to get shared tasks" });
@@ -121,11 +121,7 @@ const acceptTaskInvite = async (req, res) => {
   try {
     const task = await Task.findById(req.params.taskId);
 
-    if (!task) return res.status(404).json({ message: 'Task not found' });
-
-    if (!task.sharedWith.includes(req.userId)) {
-      task.sharedWith.push(req.userId);
-    }    
+    if (!task) return res.status(404).json({ message: 'Task not found' });  
 
     if (!task.isShared) {
       task.isShared = true;
