@@ -40,7 +40,6 @@ const AcceptInvite = () => {
 
     if (isAuthenticated) {
       acceptInvite();
-      toast.success("Task invite accepted!");
     } else {
       toast.info("Login first to accept the invite.");
       navigate("/login");

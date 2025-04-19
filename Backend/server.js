@@ -42,22 +42,109 @@ app.use("/api/comments", CommentRoutes);
 
 // Online Users Handling
 let onlineUsers = new Map();
-
+let userTaskRelations = new Map();
 io.on("connection", (socket) => {
-  socket.on("userConnected", ({ userId, name }) => {
-      onlineUsers.set(userId, { socketId: socket.id, name });
-      io.emit("updateOnlineUsers", Array.from(onlineUsers.entries()));
+  // socket.on("userConnected", ({ userId, name }) => {
+  //     onlineUsers.set(userId, { socketId: socket.id, name });
+  //     io.emit("updateOnlineUsers", Array.from(onlineUsers.entries()));
+  // });
+    
+  // socket.on("disconnect", () => {
+  //   for (let [userId, socketInfo] of onlineUsers.entries()) {
+  //     if (socketInfo.socketId === socket.id) {
+  //       onlineUsers.delete(userId);
+  //       break;
+  //     }
+  //   }
+  //   io.emit("updateOnlineUsers", Array.from(onlineUsers.entries()));
+  // });
+  socket.on("userConnected", ({ userId, name, sharedTaskUsers, createdTasks }) => {
+    onlineUsers.set(userId, { socketId: socket.id, name });
+    
+    // Store which users this user shares tasks with
+    userTaskRelations.set(userId, { 
+      sharedWith: sharedTaskUsers || [],
+      createdTasks: createdTasks || []
+    });
+    
+     // Get all users who should see this user online
+     const relevantUsers = new Set();
+    
+     // 1. Users who share tasks with this user
+     sharedTaskUsers?.forEach(id => relevantUsers.add(id));
+     
+     // 2. Users who have tasks created by this user
+     onlineUsers.forEach((_, onlineUserId) => {
+       const theirRelations = userTaskRelations.get(onlineUserId) || {};
+       if (theirRelations.createdTasks?.includes(userId)) {
+         relevantUsers.add(onlineUserId);
+       }
+     });
+     
+     // 3. Users who this user has tasks created by them
+     createdTasks?.forEach(creatorId => {
+       if (onlineUsers.has(creatorId)) {
+         relevantUsers.add(creatorId);
+       }
+     });
+     
+     // Notify only relevant users
+     relevantUsers.forEach(id => {
+       const userSocket = onlineUsers.get(id)?.socketId;
+       if (userSocket) {
+         io.to(userSocket).emit("updateOnlineUsers", getRelevantOnlineUsers(id));
+       }
+     });
   });
     
   socket.on("disconnect", () => {
+    let disconnectedUserId = null;
+    
+    // Find and remove disconnected user
     for (let [userId, socketInfo] of onlineUsers.entries()) {
       if (socketInfo.socketId === socket.id) {
         onlineUsers.delete(userId);
+        disconnectedUserId = userId;
         break;
       }
     }
-    io.emit("updateOnlineUsers", Array.from(onlineUsers.entries()));
+    
+    if (disconnectedUserId) {
+      // Notify users who shared tasks with this user
+      const usersToNotify = new Set();
+      
+      onlineUsers.forEach((_, onlineUserId) => {
+        const theirRelations = userTaskRelations.get(onlineUserId) || {};
+        if (theirRelations.sharedWith.includes(disconnectedUserId) || 
+            theirRelations.createdTasks.includes(disconnectedUserId)) {
+          usersToNotify.add(onlineUserId);
+        }
+      });
+      
+      usersToNotify.forEach(id => {
+        const userSocket = onlineUsers.get(id)?.socketId;
+        if (userSocket) {
+          io.to(userSocket).emit("updateOnlineUsers", getRelevantOnlineUsers(id));
+        }
+      });
+    }
   });
+
+  // Helper function to get relevant online users for a specific user
+  function getRelevantOnlineUsers(userId) {
+    const relations = userTaskRelations.get(userId) || {};
+    const sharedWith = relations.sharedWith || [];
+    const createdBy = relations.createdTasks || [];
+    const relevant = [];
+    
+    onlineUsers.forEach((userData, onlineUserId) => {
+      if (sharedWith.includes(onlineUserId) || createdBy.includes(onlineUserId)) {
+        relevant.push([onlineUserId, userData]);
+      }
+    });
+    
+    return relevant;
+  }
 
   // Real-time Events
   socket.on("taskUpdated", () => {io.emit("taskUpdated");});   

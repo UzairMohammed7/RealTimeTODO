@@ -69,26 +69,6 @@ const Sidebar = ({
             );
           })}
         </ul>
-        {/* <ul className="space-y-3">
-          {onlineUsers.map((userData) => {
-            if (!userData?.name) return null;
-
-            return (
-              <li
-                key={userData.userId}
-                className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 transition p-2 rounded-xl shadow-sm"
-              >
-                <div className="w-8 h-8 bg-green-100 text-green-700 font-semibold flex items-center justify-center rounded-full shadow">
-                  {userData.name.charAt(0).toUpperCase()}
-                </div>
-                <span className="text-sm font-medium text-gray-700">
-                  {userData.userId === user._id ? "You" : userData.name}
-                </span>
-              </li>
-            );
-          })}
-        </ul> */}
-
 
         {/* Invite Link Section */}
         <div className="mt-6 p-4 bg-blue-50 rounded-xl shadow-sm">

@@ -25,7 +25,6 @@ const Home = () => {
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   const [activeTab, setActiveTab] = useState("shared");
   const { user, logout, isAuthenticated } = useAuthStore();
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,6 +41,28 @@ const Home = () => {
 
           const sharedTasksRes = await axios.get(`${API_URL}/api/tasks/shared`);
           setSharedTasks(sharedTasksRes.data);
+
+          // Extract all unique users we share tasks with
+          const sharedUserIds = [
+            ...new Set(
+              sharedTasksRes.data.flatMap((task) =>
+                task.sharedWith.map((user) => user._id)
+              )
+            ),
+          ];
+
+          // Extract all unique users who created tasks we have access to
+          const createdByUserIds = [
+            ...new Set(sharedTasksRes.data.map((task) => task.createdBy?._id)),
+          ].filter((id) => id && id !== user._id); // Exclude self
+
+          // Now connect with the list of users we share tasks with
+          socket.emit("userConnected", {
+            userId: user._id,
+            name: user.name,
+            sharedTaskUsers: sharedUserIds,
+            createdTasks: createdByUserIds,
+          });
 
           const commentMap = {};
           await Promise.all(
@@ -64,50 +85,18 @@ const Home = () => {
       socket.on("taskUpdated", fetchAllData);
       socket.on("commentUpdated", fetchAllData);
 
-      // socket.on("updateOnlineUsers", (usersArray) => {
-      //   setOnlineUsers(usersArray);
-      // });
+      socket.on("updateOnlineUsers", (usersArray) => {
+        setOnlineUsers(usersArray);
+      });
 
       return () => {
         socket.off("taskUpdated", fetchAllData);
         socket.off("commentUpdated", fetchAllData);
-        // socket.off("updateOnlineUsers");
+        socket.off("updateOnlineUsers");
         socket.disconnect();
       };
     }
   }, [user, isAuthenticated]);
-
-  useEffect(() => {
-    socket.on("updateOnlineUsers", (usersArray) => {
-      const sharedWithUserIds = new Set();
-      const newUserJoined = usersArray.find(
-        (u) => sharedWithUserIds.has(u.userId) && !onlineUsers.find(o => o.userId === u.userId)
-      );
-    
-      if (newUserJoined) {
-        toast.success(`${newUserJoined.name} joined your shared task!`);
-      }
-    
-      const filteredUsers = usersArray.filter(
-        (u) => sharedWithUserIds.has(u.userId) || u.userId === user._id
-      );
-      setOnlineUsers(filteredUsers);
-    });
-
-    return () => {
-      socket.off("updateOnlineUsers");
-    };
-  }, [sharedTasks, user]);
-
-  // useEffect(() => {
-  //   socket.on("updateOnlineUsers", (usersArray) => {
-  //     setOnlineUsers(usersArray);
-  //   });
-  //   return () => {
-  //     socket.off("updateOnlineUsers");
-  //     socket.disconnect();
-  //   };
-  // }, [user]);
 
   const generateAppInviteLink = async () => {
     setIsGeneratingLink(true);
@@ -206,7 +195,7 @@ const Home = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
+    <div className={`flex flex-col md:flex-row min-h-screen`}>
       {/* Sidebar for online users */}
       <Sidebar
         mobileMenuOpen={mobileMenuOpen}
@@ -228,7 +217,7 @@ const Home = () => {
       </button>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-6 mt-16 md:mt-0">
+      <main className="flex-1 p-4 md:p-6 mt-16 md:mt-0 bg-gray-50">
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200 mb-6">
           <button

@@ -1,4 +1,5 @@
 import React from "react";
+import CustomURLBar from "./CustomURL";
 
 const SharedTodos = ({
   user,
@@ -13,6 +14,7 @@ const SharedTodos = ({
 }) => {
   return (
     <div className="mt-4">
+      <CustomURLBar />
       <ul className="space-y-4">
         {sharedTasks.length === 0 ? (
           <div className="bg-white p-8 mt-2 rounded-lg shadow text-center flex flex-col items-center justify-center">
@@ -45,12 +47,6 @@ const SharedTodos = ({
                   <p className="text-sm text-gray-500 mt-1">
                     📝 Created by: <strong>{task.createdBy?.name}</strong>
                   </p>
-                  {/* Created At */}
-                  <p className="text-sm text-gray-500 mt-1">
-                    📅 Created At:{" "}
-                    <strong>{new Date(task.createdAt).toLocaleString()}</strong>
-                  </p>
-
                   {/* Shared With */}
                   <p className="text-sm text-gray-500 mt-1">
                     👥 Shared With:{" "}
@@ -59,11 +55,16 @@ const SharedTodos = ({
                         ...new Set(task.sharedWith.map((user) => user.name)),
                       ].map((name, index, arr) => (
                         <span key={index}>
-                          {name}
+                          {name === user.name ? "You" : name}
                           {index !== arr.length - 1 && ", "}
                         </span>
                       ))}
                     </span>
+                  </p>
+                  {/* Created At */}
+                  <p className="text-sm text-gray-500 mt-1">
+                    📅 Created At:{" "}
+                    <strong>{new Date(task.createdAt).toLocaleString()}</strong>
                   </p>
                   {task.completed && (
                     <p className="text-sm text-green-600">
@@ -72,7 +73,7 @@ const SharedTodos = ({
                   )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col md:flex-row gap-2">
                   <button
                     onClick={() => completeTask(task._id)}
                     className="bg-transparent hover:bg-green-100 text-green-600 px-3 py-1 rounded-md text-sm border-2"
@@ -85,7 +86,7 @@ const SharedTodos = ({
                       onClick={() => handleDeleteTask(task._id)}
                       className="bg-transparent hover:bg-red-100 text-red-500 px-3 py-1 rounded-md text-sm border-2"
                     >
-                      Delete Task
+                      Delete
                     </button>
                   )}
                 </div>

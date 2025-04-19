@@ -2,10 +2,10 @@ import React from "react";
 
 const DeleteButton = () => {
   return (
-    <button class="group relative flex h-8 w-8 rounded-lg flex-col items-center justify-center overflow-hidden bg-red-600 hover:bg-red-700">
+    <button className="group relative flex h-8 w-8 rounded-lg flex-col items-center justify-center overflow-hidden bg-red-600 hover:bg-red-700">
       <svg
         viewBox="0 0 1.625 1.625"
-        class="absolute -top-7 fill-white delay-100 group-hover:top-6 group-hover:animate-[spin_1.4s] group-hover:duration-1000"
+        className="absolute -top-7 fill-white delay-100 group-hover:top-6 group-hover:animate-[spin_1.4s] group-hover:duration-1000"
         height="10"
         width="10"
       >
@@ -17,7 +17,7 @@ const DeleteButton = () => {
         width="16"
         fill="none"
         viewBox="0 0 39 7"
-        class="origin-right duration-500 group-hover:rotate-90"
+        className="origin-right duration-500 group-hover:rotate-90"
       >
         <line stroke-width="4" stroke="white" y2="5" x2="39" y1="5"></line>
         <line
@@ -29,7 +29,7 @@ const DeleteButton = () => {
           x1="12"
         ></line>
       </svg>
-      <svg width="16" fill="none" viewBox="0 0 33 39" class="">
+      <svg width="16" fill="none" viewBox="0 0 33 39">
         <mask fill="white" id="path-1-inside-1_8_19">
           <path d="M0 0H33V35C33 37.2091 31.2091 39 29 39H4C1.79086 39 0 37.2091 0 35V0Z"></path>
         </mask>
